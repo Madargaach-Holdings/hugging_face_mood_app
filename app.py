@@ -46,20 +46,42 @@ api_client = InferenceClient(
 )
 
 def generate_positive_thought():
-    prompt = "Generate a short positive and motivational message."
+    user_prompt = "Generate a short positive and motivational message."
     try:
         start_time = time.time()
+
         completion = api_client.chat.completions.create(
             model=API_MODEL_NAME,
             messages=[
-                {"role": "system", "content": "You are a friendly assistant that writes positive motivational messages."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a friendly assistant that ONLY returns a short, positive, "
+                        "motivational message. You may think internally, but always wrap your "
+                        "internal reasoning in <think>...</think> tags. The user only sees the message "
+                        "outside these tags."
+                    )
+                },
+                {"role": "user", "content": user_prompt}
             ]
         )
         end_time = time.time()
         response_time = round(end_time - start_time, 2)
-        message = completion.choices[0].message["content"].strip()
-        return f"{message}\n\n(Generated via {API_MODEL_NAME} in {response_time}s)"
+
+        full_text = completion.choices[0].message["content"].strip()
+
+        # Extract only text after </think>
+        if "</think>" in full_text:
+            final_message = full_text.split("</think>")[-1].strip()
+        else:
+            final_message = full_text
+
+        # Optional: remove surrounding quotes
+        if final_message.startswith('"') and final_message.endswith('"'):
+            final_message = final_message[1:-1].strip()
+
+        return f"{final_message}\n\n(Generated via {API_MODEL_NAME} in {response_time}s)"
+
     except Exception as e:
         traceback.print_exc()
         return f"❌ API Call Failed:\n{type(e).__name__}: {str(e)}"
@@ -104,4 +126,4 @@ with gr.Blocks(title="Dual-Mode Mood App", theme=gr.themes.Soft()) as demo:
 
 # Launch the app
 if __name__ == "__main__":
-    demo.launch(share=True)
+    demo.launch(share=False)
