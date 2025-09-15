@@ -40,8 +40,35 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE: ${{ secrets.HF_SPACE_NAME }}
         run: |
-          git remote add hub "https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/$HF_SPACE"
-          git push --force hub main
+          echo "🔄 Setting up Git for Hugging Face push..."
+          
+          # Configure Git
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # Clone the Hugging Face Space repository
+          echo "📥 Cloning Hugging Face Space..."
+          git clone "https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/$HF_SPACE" hf-space
+          cd hf-space
+          
+          # Copy files from current repo to HF space
+          echo "📋 Copying files..."
+          cp ../app.py .
+          cp ../requirements.txt .
+          cp ../README.md .
+          cp ../test_local_model.py .
+          cp ../telegram_notifier.py .
+          cp ../TELEGRAM_SETUP.md .
+          
+          # Commit and push changes
+          echo "💾 Committing changes..."
+          git add .
+          git commit -m "Auto-sync from GitHub: ${{ github.event.head_commit.message }}" || echo "No changes to commit"
+          
+          echo "📤 Pushing to Hugging Face Spaces..."
+          git push origin main
+          
+          echo "✅ Successfully synced to Hugging Face Spaces!"
 
       # Step 6: Send Telegram notification on success
       - name: Send Telegram Success Notification
