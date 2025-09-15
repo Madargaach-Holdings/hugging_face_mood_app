@@ -70,13 +70,16 @@ def generate_positive_thought():
 
         full_text = completion.choices[0].message["content"].strip()
 
-        # Extract only text after </think>
+        # Extract only text after </think> and clean up formatting
         if "</think>" in full_text:
             final_message = full_text.split("</think>")[-1].strip()
         else:
             final_message = full_text
 
-        # Optional: remove surrounding quotes
+        # Clean up any remaining formatting artifacts
+        final_message = final_message.replace("</code>", "").strip()
+        
+        # Remove surrounding quotes if present
         if final_message.startswith('"') and final_message.endswith('"'):
             final_message = final_message[1:-1].strip()
 
