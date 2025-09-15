@@ -7,8 +7,8 @@ import os
 # --- Configuration --- #
 # Model for the LOCAL tab (must be small enough to run on CPU)
 LOCAL_MODEL_NAME = "distilbert-base-uncased-finetuned-sst-2-english"
-# Model for the API tab (Using a powerful, supported chat model)
-API_MODEL_NAME = "HuggingFaceH4/zephyr-7b-beta"
+# Model for the API tab (Changed to a more reliable, efficient model)
+API_MODEL_NAME = "facebook/MobileLLM-R1-360M"
 
 # --- Function for the LOCAL model (Tab 1) --- #
 print("🔄 Loading the local sentiment model... This might take a minute.")
@@ -51,36 +51,24 @@ api_client = InferenceClient(model=API_MODEL_NAME)
 def generate_positive_thought():
     """Uses the Hugging Face Inference API to generate a positive message."""
     
-    # Create a prompt that will guide the model to generate a positive message
-    prompt = """<|system|>
-You are a helpful AI assistant that generates short, positive, and motivational messages.
-Your responses should be one or two sentences maximum, and designed to make someone's day better.
-</s>
-<|user|>
-Please generate a short positive and motivational message.
-</s>
-<|assistant|>
-"""
+    # Simple prompt - MobileLLM doesn't need complex chat templates
+    prompt = "Generate a short positive and motivational message:"
     
     try:
         start_time = time.time()
         
-        # Call the hosted model via API with the specific prompt format for this model
+        # Call the hosted model via API
         response = api_client.text_generation(
             prompt=prompt,
-            max_new_tokens=75,  # Increased slightly for better responses
+            max_new_tokens=75,
             do_sample=True,
-            temperature=0.8,    # Slightly lower temperature for more focused responses
-            stop_sequences=["</s>"]  # Stop generating when this token appears
+            temperature=0.8
         )
         
         end_time = time.time()
         response_time = round(end_time - start_time, 2)
         
-        # Clean up the response by removing the stop sequence if it appears at the end
-        cleaned_response = response.replace('</s>', '').strip()
-        
-        return f"{cleaned_response}\n\n(Generated via API in {response_time}s)"
+        return f"{response}\n\n(Generated via MobileLLM-360M API in {response_time}s)"
     
     except Exception as e:
         return f"An error occurred calling the API: {str(e)}. The API might be busy or require authentication."
@@ -107,10 +95,10 @@ with gr.Blocks(title="Dual-Mode Mood App", theme=gr.themes.Soft()) as demo:
         analyze_btn.click(fn=analyze_sentiment, inputs=input_text, outputs=output_sentiment)
 
     with gr.Tab("💡 Generate Positive Thought (API Model)"):
-        gr.Markdown("This tab uses a powerful 7B parameter model (**Zephyr-7B-Beta**) called **remotely** via Hugging Face's Inference API.")
+        gr.Markdown("This tab uses an efficient 360M parameter model (**MobileLLM**) called **remotely** via Hugging Face's Inference API.")
         with gr.Row():
             with gr.Column():
-                gr.Markdown("Click the button to generate an uplifting message using a state-of-the-art cloud model.")
+                gr.Markdown("Click the button to generate an uplifting message using a cloud-based model that's 5x larger than the local one.")
                 gen_btn = gr.Button("Generate Positivity!", variant="primary")
             with gr.Column():
                 output_text = gr.Textbox(label="Generated Message", interactive=False, lines=5)
