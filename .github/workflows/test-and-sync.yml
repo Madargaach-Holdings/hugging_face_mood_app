@@ -28,7 +28,9 @@ jobs:
       - name: Run local model tests
         id: test
         run: |
-          pytest test_local_model.py
+          echo "🧪 Running local model tests..."
+          python -m pytest test_local_model.py -v
+          echo "✅ All tests passed!"
 
       # Step 5: Sync to Hugging Face Spaces (only if tests passed)
       - name: Push to Hugging Face Hub

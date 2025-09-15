@@ -3,3 +3,4 @@ transformers>=4.30
 huggingface-hub>=0.20
 torch>=2.0
 accelerate
+pytest>=7.0
