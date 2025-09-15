@@ -1,3 +1,14 @@
+---
+title: Dual-Mode Mood App
+emoji: 🌟
+colorFrom: blue
+colorTo: purple
+sdk: gradio
+sdk_version: 4.19.2
+app_file: app.py
+pinned: false
+---
+
 # 🌟 Dual-Mode Mood App - MLOps Case Study
 
 [![Sync to HF Space](https://github.com/Madargaach-Holdings/hugging_face_mood_app/actions/workflows/sync-to-hf.yml/badge.svg)](https://github.com/Madargaach-Holdings/hugging_face_mood_app/actions/workflows/sync-to-hf.yml)
