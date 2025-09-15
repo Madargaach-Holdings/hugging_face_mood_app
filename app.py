@@ -7,8 +7,8 @@ import os
 # --- Configuration --- #
 # Model for the LOCAL tab (must be small enough to run on CPU)
 LOCAL_MODEL_NAME = "distilbert-base-uncased-finetuned-sst-2-english"
-# Model for the API tab (Changed to a more reliable, efficient model)
-API_MODEL_NAME = "facebook/MobileLLM-R1-360M"
+# Model for the API tab (Changed to reliable GPT2)
+API_MODEL_NAME = "openai-community/gpt2"
 
 # --- Function for the LOCAL model (Tab 1) --- #
 print("🔄 Loading the local sentiment model... This might take a minute.")
@@ -51,7 +51,7 @@ api_client = InferenceClient(model=API_MODEL_NAME)
 def generate_positive_thought():
     """Uses the Hugging Face Inference API to generate a positive message."""
     
-    # Simple prompt - MobileLLM doesn't need complex chat templates
+    # Simple prompt for GPT2
     prompt = "Generate a short positive and motivational message:"
     
     try:
@@ -60,18 +60,22 @@ def generate_positive_thought():
         # Call the hosted model via API
         response = api_client.text_generation(
             prompt=prompt,
-            max_new_tokens=75,
+            max_new_tokens=50,
             do_sample=True,
-            temperature=0.8
+            temperature=0.9,
+            top_p=0.9
         )
         
         end_time = time.time()
         response_time = round(end_time - start_time, 2)
         
-        return f"{response}\n\n(Generated via MobileLLM-360M API in {response_time}s)"
+        # Clean up the response - sometimes GPT2 repeats the prompt
+        cleaned_response = response.replace(prompt, '').strip()
+        
+        return f"{cleaned_response}\n\n(Generated via GPT2 API in {response_time}s)"
     
     except Exception as e:
-        return f"An error occurred calling the API: {str(e)}. The API might be busy or require authentication."
+        return f"An error occurred calling the API: {str(e)}"
 
 # --- Gradio Interface --- #
 with gr.Blocks(title="Dual-Mode Mood App", theme=gr.themes.Soft()) as demo:
@@ -81,7 +85,7 @@ with gr.Blocks(title="Dual-Mode Mood App", theme=gr.themes.Soft()) as demo:
     """)
     
     with gr.Tab("🔍 Analyze Sentiment (Local Model)"):
-        gr.Markdown("This tab uses a small model (**DistilBERT**) running **locally** on this server's CPU.")
+        gr.Markdown("This tab uses a small model (**DistilBERT - 66M parameters**) running **locally** on this server's CPU.")
         with gr.Row():
             with gr.Column():
                 input_text = gr.Textbox(label="How are you feeling?", placeholder="Type a sentence here...", lines=3)
@@ -95,10 +99,10 @@ with gr.Blocks(title="Dual-Mode Mood App", theme=gr.themes.Soft()) as demo:
         analyze_btn.click(fn=analyze_sentiment, inputs=input_text, outputs=output_sentiment)
 
     with gr.Tab("💡 Generate Positive Thought (API Model)"):
-        gr.Markdown("This tab uses an efficient 360M parameter model (**MobileLLM**) called **remotely** via Hugging Face's Inference API.")
+        gr.Markdown("This tab uses a larger model (**GPT2 - 124M parameters**) called **remotely** via Hugging Face's Inference API.")
         with gr.Row():
             with gr.Column():
-                gr.Markdown("Click the button to generate an uplifting message using a cloud-based model that's 5x larger than the local one.")
+                gr.Markdown("Click the button to generate an uplifting message using a cloud-based model that's 2x larger than the local one.")
                 gen_btn = gr.Button("Generate Positivity!", variant="primary")
             with gr.Column():
                 output_text = gr.Textbox(label="Generated Message", interactive=False, lines=5)
