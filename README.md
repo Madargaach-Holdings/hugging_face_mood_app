@@ -11,7 +11,7 @@ pinned: false
 
 # 🌟 Dual-Mode Mood App - MLOps Case Study
 
-[![Sync to HF Space](https://github.com/Madargaach-Holdings/hugging_face_mood_app/actions/workflows/sync-to-hf.yml/badge.svg)](https://github.com/Madargaach-Holdings/hugging_face_mood_app/actions/workflows/sync-to-hf.yml)
+[![Sync to HF Space](https://github.com/Madargaach-Holdings/hugging_face_mood_app/actions/workflows/test-and-sync.yml/badge.svg)](https://github.com/Madargaach-Holdings/hugging_face_mood_app/actions/workflows/test-and-sync.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A Gradio-based web application demonstrating key MLOps concepts by comparing local vs. remote AI model deployment strategies. Built for DS/CS553 – Machine Learning Development and Operations (MLOps) Case Study 1.
@@ -33,7 +33,7 @@ A Gradio-based web application demonstrating key MLOps concepts by comparing loc
 | Task | Model | Framework | Deployment |
 | :--- | :--- | :--- | :--- |
 | Sentiment Analysis | [`distilbert-base-uncased-finetuned-sst-2-english`](https://huggingface.co/distilbert-base-uncased-finetuned-sst-2-english) | Transformers | Local CPU |
-| Text Generation | [`microsoft/DialoGPT-medium`](https://huggingface.co/microsoft/DialoGPT-medium) | Hugging Face Inference API | Remote API |
+| Text Generation | [`HuggingFaceTB/SmolLM3-3B`](https://huggingface.co/HuggingFaceTB/SmolLM3-3B) | Hugging Face Inference API | Remote API |
 
 ### Tech Stack
 - **Frontend:** [Gradio](https://www.gradio.app/)
@@ -78,7 +78,7 @@ To run this application locally:
 
 This project demonstrates automated MLOps practices:
 
-1.  **Continuous Deployment:** The `.github/workflows/sync-to-hf.yml` workflow automatically pushes all changes from the `main` branch of this repository to the connected Hugging Face Space.
+1.  **Continuous Deployment:** The `.github/workflows/test-and-sync.yml` workflow automatically pushes all changes from the `main` branch of this repository to the connected Hugging Face Space.
 2.  **Secrets Management:** The Hugging Face write token is securely stored as a secret (`HF_TOKEN`) in the GitHub repository settings, enabling secure authentication for the sync process.
 
 ## 📊 Key Findings & trade-offs
