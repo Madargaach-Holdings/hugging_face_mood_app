@@ -129,4 +129,4 @@ with gr.Blocks(title="Dual-Mode Mood App", theme=gr.themes.Soft()) as demo:
 
 # Launch the app
 if __name__ == "__main__":
-    demo.launch(share=False)
+    demo.launch(share=True)
