@@ -105,3 +105,55 @@ This project is open source and available under the [MIT License](LICENSE).
 ---
 
 **Note:** This project was created for educational purposes as part of the MLOps course at WPI.
+
+---
+
+## 🐳 Case Study 3: Docker & Monitoring
+
+This repo has been updated to run in Docker and expose Prometheus metrics for both the container and the Python app.
+
+### Images and Ports
+
+- Container app (Gradio): internal `7860` → host `35001`
+- Python Prometheus metrics: internal `8000` → host `35002`
+- Node Exporter metrics: internal `9100` → host `35003`
+
+Claimed port range for Team 10: `35000-35010`.
+
+### Build
+
+```bash
+docker build -t group10_mood_app:latest .
+```
+
+### Run (replace HF_TOKEN accordingly)
+
+```bash
+docker run --rm \
+  -e HF_TOKEN=$HF_TOKEN \
+  -p 35001:7860 \
+  -p 35002:8000 \
+  -p 35003:9100 \
+  --name group10_mood_app \
+  group10_mood_app:latest
+```
+
+### Verify Endpoints
+
+- App UI: `http://<host>:35001`
+- Python metrics: `http://<host>:35002/metrics`
+- Node Exporter: `http://<host>:35003/metrics`
+
+### Ngrok (example)
+
+```bash
+ngrok http 35001   # expose Gradio UI
+ngrok http 35002   # expose Python metrics (optional)
+ngrok http 35003   # expose Node Exporter (optional)
+```
+
+### Notes
+
+- `app.py` starts the Prometheus client on port `8000` and instruments:
+  - local/API request counters, error counters, latency summaries, local model loaded gauge
+- The container also runs `prometheus-node-exporter` on port `9100`.
