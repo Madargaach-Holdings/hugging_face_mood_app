@@ -14,33 +14,30 @@ pinned: false
 [![Sync to HF Space](https://github.com/Madargaach-Holdings/hugging_face_mood_app/actions/workflows/test-and-sync.yml/badge.svg)](https://github.com/Madargaach-Holdings/hugging_face_mood_app/actions/workflows/test-and-sync.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Gradio-based web application demonstrating key MLOps concepts by comparing local vs. remote AI model deployment strategies. Built for DS/CS553 – Machine Learning Development and Operations (MLOps) Case Study 1.
+A Gradio-based web application for generating positive motivational messages using Hugging Face Inference API. Originally built for DS/CS553 – Machine Learning Development and Operations (MLOps) Case Study 1, now updated for Case Study 4 cloud deployment.
 
 **Live Demo on Hugging Face Spaces:**  
 👉 [https://huggingface.co/spaces/upandit/mood-app-api-version](https://huggingface.co/spaces/upandit/mood-app-api-version) 👈
 
 ## 🚀 Features
 
-- **Dual-Tab Interface:** Compare two deployment paradigms in a single application.
-- **🔍 Analyze Sentiment (Local Model):** Runs a lightweight DistilBERT model **locally** on the CPU for fast, private sentiment analysis.
-- **💡 Generate Positive Thought (API Model):** Leverages a powerful remote model via Hugging Face's **Inference API** for generative tasks.
-- **Built-in Performance Metrics:** Response times are displayed, providing immediate data for comparing local vs. API latency.
-- **Automated MLOps Pipeline:** GitHub Actions automatically syncs code to Hugging Face Spaces on every commit.
+- **API-Based Product:** Generates positive motivational messages using Hugging Face Inference API.
+- **Cloud-Ready:** Configured for deployment on GCP Cloud Run, Azure Container Apps, and AWS ECS.
+- **Docker Support:** Fully containerized with minimal dependencies for efficient cloud deployment.
+- **Environment Variable Support:** Uses `PORT` environment variable for cloud platform compatibility.
 
 ## 🛠️ Technical Architecture
 
-### Models Used
+### Model Used
 | Task | Model | Framework | Deployment |
 | :--- | :--- | :--- | :--- |
-| Sentiment Analysis | [`distilbert-base-uncased-finetuned-sst-2-english`](https://huggingface.co/distilbert-base-uncased-finetuned-sst-2-english) | Transformers | Local CPU |
 | Text Generation | [`HuggingFaceTB/SmolLM3-3B`](https://huggingface.co/HuggingFaceTB/SmolLM3-3B) | Hugging Face Inference API | Remote API |
 
 ### Tech Stack
 - **Frontend:** [Gradio](https://www.gradio.app/)
-- **ML Framework:** [Hugging Face Transformers](https://huggingface.co/docs/transformers)
 - **API Client:** [Hugging Face Hub](https://huggingface.co/docs/huggingface_hub)
-- **CI/CD & Sync:** [GitHub Actions](https://github.com/features/actions)
-- **Hosting:** [Hugging Face Spaces](https://huggingface.co/spaces)
+- **Containerization:** Docker
+- **Cloud Platforms:** GCP Cloud Run, Azure Container Apps, AWS ECS
 
 ## 📦 Installation & Local Run
 
@@ -68,7 +65,12 @@ To run this application locally:
     pip install -r requirements.txt
     ```
 
-4.  **Run the application:**
+4.  **Set your Hugging Face token:**
+    ```bash
+    export HF_TOKEN=your_hugging_face_token_here
+    ```
+
+5.  **Run the application:**
     ```bash
     python app.py
     ```
@@ -108,52 +110,98 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-## 🐳 Case Study 3: Docker & Monitoring
+## ☁️ Case Study 4: Cloud Deployment
 
-This repo has been updated to run in Docker and expose Prometheus metrics for both the container and the Python app.
+This application has been refactored for cloud deployment on GCP Cloud Run, Azure Container Apps, and AWS ECS. The app now focuses solely on the API-based product (positive thought generation).
 
-### Images and Ports
+### Key Changes for Cloud Deployment
 
-- Container app (Gradio): internal `7860` → host `35001`
-- Python Prometheus metrics: internal `8000` → host `35002`
-- Node Exporter metrics: internal `9100` → host `35003`
+1. **Removed Local Model:** All local model dependencies (transformers, torch) have been removed to reduce container size and startup time.
+2. **Simplified Dependencies:** Only `gradio` and `huggingface-hub` are required.
+3. **Port Configuration:** The app reads the `PORT` environment variable (defaults to 7860) for cloud platform compatibility.
+4. **Streamlined Dockerfile:** Minimal Docker image optimized for cloud deployment.
 
-Claimed port range for Team 10: `35000-35010`.
+### Local Docker Testing
 
-### Build
-
+**Build:**
 ```bash
-docker build -t group10_mood_app:latest .
+docker build -t mood-app-api:latest .
 ```
 
-### Run (replace HF_TOKEN accordingly)
-
+**Run:**
 ```bash
 docker run --rm \
   -e HF_TOKEN=$HF_TOKEN \
-  -p 35001:7860 \
-  -p 35002:8000 \
-  -p 35003:9100 \
-  --name group10_mood_app \
-  group10_mood_app:latest
+  -p 7860:7860 \
+  --name mood-app-api \
+  mood-app-api:latest
 ```
 
-### Verify Endpoints
+**Access:** `http://localhost:7860`
 
-- App UI: `http://<host>:35001`
-- Python metrics: `http://<host>:35002/metrics`
-- Node Exporter: `http://<host>:35003/metrics`
+### Cloud Platform Deployment
 
-### Ngrok (example)
+#### GCP Cloud Run
 
-```bash
-ngrok http 35001   # expose Gradio UI
-ngrok http 35002   # expose Python metrics (optional)
-ngrok http 35003   # expose Node Exporter (optional)
-```
+1. **Build and push to Google Container Registry:**
+   ```bash
+   gcloud builds submit --tag gcr.io/PROJECT_ID/mood-app-api
+   ```
+
+2. **Deploy to Cloud Run:**
+   ```bash
+   gcloud run deploy mood-app-api \
+     --image gcr.io/PROJECT_ID/mood-app-api \
+     --platform managed \
+     --region us-central1 \
+     --allow-unauthenticated \
+     --set-env-vars HF_TOKEN=your_token_here \
+     --port 8080
+   ```
+   Note: Cloud Run sets `PORT=8080` automatically.
+
+#### Azure Container Apps
+
+1. **Build and push to Azure Container Registry:**
+   ```bash
+   az acr build --registry REGISTRY_NAME --image mood-app-api:latest .
+   ```
+
+2. **Deploy to Container Apps:**
+   ```bash
+   az containerapp create \
+     --name mood-app-api \
+     --resource-group RESOURCE_GROUP \
+     --image REGISTRY_NAME.azurecr.io/mood-app-api:latest \
+     --target-port 80 \
+     --ingress external \
+     --env-vars HF_TOKEN=your_token_here
+   ```
+   Note: Azure Container Apps typically use port 80.
+
+#### AWS ECS (Fargate)
+
+1. **Build and push to Amazon ECR:**
+   ```bash
+   aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
+   docker build -t mood-app-api .
+   docker tag mood-app-api:latest ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/mood-app-api:latest
+   docker push ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/mood-app-api:latest
+   ```
+
+2. **Create ECS Task Definition** (via AWS Console or CLI) with:
+   - Container port: 7860 (or set PORT env var)
+   - Environment variable: `HF_TOKEN`
+
+3. **Deploy to ECS Fargate service** using the task definition.
+
+### Environment Variables
+
+- `HF_TOKEN` (required): Your Hugging Face API token
+- `PORT` (optional): Port to bind the application (defaults to 7860)
 
 ### Notes
 
-- `app.py` starts the Prometheus client on port `8000` and instruments:
-  - local/API request counters, error counters, latency summaries, local model loaded gauge
-- The container also runs `prometheus-node-exporter` on port `9100`.
+- The application automatically reads the `PORT` environment variable set by cloud platforms.
+- All cloud platforms will provide a public URL after deployment.
+- Make sure to set up cost monitoring/budgets on each platform to stay within free tier limits.
